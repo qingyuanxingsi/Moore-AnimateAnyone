@@ -45,7 +45,7 @@ def process_single_video(video_path, detector, root_dir, save_dir):
             break
         result, score = detector(frame)
         score = np.mean(score, axis=-1)
-        print(score)
+        # print(score)
         # kps_results.append(result)
         result.save(os.path.join(frame_dir, f"{frame_idx:06d}.jpg"))
         frame_idx += 1
@@ -93,8 +93,8 @@ if __name__ == "__main__":
         for name in files:
             if name.endswith(".mp4"):
                 video_mp4_paths.add(os.path.join(root, name))
-    video_mp4_paths = list(video_mp4_paths)
-    random.shuffle(video_mp4_paths)
+    video_mp4_paths = sorted(list(video_mp4_paths))
+    # random.shuffle(video_mp4_paths)
 
     # split into chunks,
     batch_size = (len(video_mp4_paths) + num_workers - 1) // num_workers

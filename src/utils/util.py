@@ -8,9 +8,11 @@ from pathlib import Path
 import av
 import numpy as np
 import torch
+import subprocess
 import torchvision
 from einops import rearrange
 from PIL import Image
+from tqdm import tqdm
 
 
 def seed_everything(seed):
@@ -53,30 +55,11 @@ def save_videos_from_pil(image_dir, path, fps=8):
 
     save_fmt = Path(path).suffix
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    image_files = [f for f in sorted(os.listdir(image_dir)) if os.path.isfile(os.path.join(image_dir, f))]
-    first_image = av.open(os.path.join(image_dir, image_files[0]))
-    width = first_image.width
-    height = first_image.height
 
     if save_fmt == ".mp4":
-        codec = "libx264"
-        container = av.open(path, "w")
-        stream = container.add_stream(codec, rate=fps)
-
-        stream.width = width
-        stream.height = height
-
-        for image_file in image_files:
-            cur_img = os.path.join(image_dir, image_file)
-            image = av.open(cur_img)
-            for packet in image.demux():
-                for frame in packet.decode():
-                    stream.encode(frame)
-
-        for packet in stream.encode():
-            container.mux(packet)
-        container.close()
-        shutil.rmtree(image_dir)
+        ffmpeg_cmd = f"ffmpeg -framerate {fps} -i {image_dir}/%06d.jpg -c:v libx264 -r {fps} {path}"
+        subprocess.call(ffmpeg_cmd, shell=True)
+        # shutil.rmtree(image_dir)
 
     elif save_fmt == ".gif":
         # pil_images[0].save(
