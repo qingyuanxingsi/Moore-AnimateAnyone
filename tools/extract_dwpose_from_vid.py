@@ -94,7 +94,7 @@ if __name__ == "__main__":
             if name.endswith(".mp4"):
                 video_mp4_paths.add(os.path.join(root, name))
     video_mp4_paths = sorted(list(video_mp4_paths))
-    # random.shuffle(video_mp4_paths)
+    random.shuffle(video_mp4_paths)
 
     # split into chunks,
     batch_size = (len(video_mp4_paths) + num_workers - 1) // num_workers
