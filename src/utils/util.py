@@ -48,12 +48,15 @@ def delete_additional_ckpt(base_path, num_keep):
             shutil.rmtree(path_to_dir)
 
 
-def save_videos_from_pil(pil_images, path, fps=8):
+def save_videos_from_pil(image_dir, path, fps=8):
     import av
 
     save_fmt = Path(path).suffix
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    width, height = pil_images[0].size
+    image_files = [f for f in sorted(os.listdir(image_dir)) if os.path.isfile(os.path.join(image_dir, f))]
+    first_image = av.open(os.path.join(image_dir, image_files[0]))
+    width = first_image.width
+    height = first_image.height
 
     if save_fmt == ".mp4":
         codec = "libx264"
@@ -63,22 +66,28 @@ def save_videos_from_pil(pil_images, path, fps=8):
         stream.width = width
         stream.height = height
 
-        for pil_image in pil_images:
-            # pil_image = Image.fromarray(image_arr).convert("RGB")
-            av_frame = av.VideoFrame.from_image(pil_image)
-            container.mux(stream.encode(av_frame))
-        container.mux(stream.encode())
+        for image_file in image_files:
+            cur_img = os.path.join(image_dir, image_file)
+            image = av.open(cur_img)
+            for packet in image.demux():
+                for frame in packet.decode():
+                    stream.encode(frame)
+
+        for packet in stream.encode():
+            container.mux(packet)
         container.close()
+        shutil.rmtree(image_dir)
 
     elif save_fmt == ".gif":
-        pil_images[0].save(
-            fp=path,
-            format="GIF",
-            append_images=pil_images[1:],
-            save_all=True,
-            duration=(1 / fps * 1000),
-            loop=0,
-        )
+        # pil_images[0].save(
+        #     fp=path,
+        #     format="GIF",
+        #     append_images=pil_images[1:],
+        #     save_all=True,
+        #     duration=(1 / fps * 1000),
+        #     loop=0,
+        # )
+        pass
     else:
         raise ValueError("Unsupported file type. Use .mp4 or .gif.")
 

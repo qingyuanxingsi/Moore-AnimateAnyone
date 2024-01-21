@@ -4,7 +4,12 @@ import random
 from pathlib import Path
 
 import numpy as np
-
+import sys
+from tqdm import tqdm
+import shutil
+from PIL import Image
+import cv2
+sys.path.append('/mnt/chongqinggeminiceph1fs/geminicephfs/security-others-common/doodleliang/Moore-AnimateAnyone')
 from src.dwpose import DWposeDetector
 from src.utils.util import get_fps, read_frames, save_videos_from_pil
 
@@ -18,21 +23,36 @@ def process_single_video(video_path, detector, root_dir, save_dir):
     out_path = os.path.join(save_dir, relative_path)
     if os.path.exists(out_path):
         return
-
     output_dir = Path(os.path.dirname(os.path.join(save_dir, relative_path)))
+    frame_dir = os.path.join(os.path.dirname(save_dir), 'frames', relative_path)
+    if os.path.exists(frame_dir):
+        shutil.rmtree(frame_dir)
+    if not os.path.exists(frame_dir):
+        os.makedirs(frame_dir, exist_ok=True)
     if not output_dir.exists():
         output_dir.mkdir(parents=True, exist_ok=True)
 
     fps = get_fps(video_path)
-    frames = read_frames(video_path)
-    kps_results = []
-    for i, frame_pil in enumerate(frames):
-        result, score = detector(frame_pil)
+    cap = cv2.VideoCapture(video_path)
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    # kps_results = []
+    bar = tqdm(total=frame_count)
+    frame_idx = 0
+    while cap.isOpened():
+        bar.update(1)
+        ret, frame = cap.read()
+        if not ret:
+            break
+        result, score = detector(frame)
         score = np.mean(score, axis=-1)
+        print(score)
+        # kps_results.append(result)
+        result.save(os.path.join(frame_dir, f"{frame_idx:06d}.jpg"))
+        frame_idx += 1
+    bar.close()
+    cap.release()
 
-        kps_results.append(result)
-
-    save_videos_from_pil(kps_results, out_path, fps=fps)
+    save_videos_from_pil(frame_dir, out_path, fps=fps)
 
 
 def process_batch_videos(video_list, detector, root_dir, save_dir):
@@ -53,9 +73,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--save_dir", type=str, help="Path to save extracted pose videos"
     )
-    parser.add_argument("-j", type=int, default=4, help="Num workers")
+    parser.add_argument("-j", type=int, default=1, help="Num workers")
     args = parser.parse_args()
     num_workers = args.j
+    args.video_root = os.path.abspath(args.video_root)
     if args.save_dir is None:
         save_dir = args.video_root + "_dwpose"
     else:

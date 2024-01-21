@@ -10,13 +10,9 @@ import os
 # -----
 parser = argparse.ArgumentParser()
 parser.add_argument("--root_path", type=str)
-parser.add_argument("--dataset_name", type=str)
-parser.add_argument("--meta_info_name", type=str)
+parser.add_argument("--dataset", type=str)
 
 args = parser.parse_args()
-
-if args.meta_info_name is None:
-    args.meta_info_name = args.dataset_name
 
 pose_dir = args.root_path + "_dwpose"
 
@@ -34,4 +30,4 @@ for video_mp4_path in video_mp4_paths:
     kps_path = os.path.join(pose_dir, relative_video_name)
     meta_infos.append({"video_path": video_mp4_path, "kps_path": kps_path})
 
-json.dump(meta_infos, open(f"./data/{args.meta_info_name}_meta.json", "w"))
+json.dump(meta_infos, open(f"datasets/{args.dataset}/{args.dataset}_meta.json", "w"))
