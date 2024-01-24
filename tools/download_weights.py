@@ -18,6 +18,7 @@ def prepare_base_model():
             subfolder=PurePosixPath(path.parent),
             filename=PurePosixPath(path.name),
             local_dir=local_dir,
+            local_files_only=True
         )
 
 
@@ -35,6 +36,7 @@ def prepare_image_encoder():
             subfolder=PurePosixPath(path.parent),
             filename=PurePosixPath(path.name),
             local_dir=local_dir,
+            local_files_only=True
         )
 
 
@@ -56,6 +58,7 @@ def prepare_dwpose():
             subfolder=PurePosixPath(path.parent),
             filename=PurePosixPath(path.name),
             local_dir=local_dir,
+            local_files_only=True
         )
 
 
@@ -77,6 +80,7 @@ def prepare_vae():
             subfolder=PurePosixPath(path.parent),
             filename=PurePosixPath(path.name),
             local_dir=local_dir,
+            local_files_only=True
         )
 
 
@@ -100,6 +104,7 @@ def prepare_anyone():
             subfolder=PurePosixPath(path.parent),
             filename=PurePosixPath(path.name),
             local_dir=local_dir,
+            local_files_only=True
         )
 
 if __name__ == '__main__':

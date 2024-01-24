@@ -50,27 +50,37 @@ def delete_additional_ckpt(base_path, num_keep):
             shutil.rmtree(path_to_dir)
 
 
-def save_videos_from_pil(image_dir, path, fps=8):
+def save_videos_from_pil(pil_images, path, fps=8):
     import av
 
     save_fmt = Path(path).suffix
     os.makedirs(os.path.dirname(path), exist_ok=True)
+    width, height = pil_images[0].size
 
     if save_fmt == ".mp4":
-        ffmpeg_cmd = f"ffmpeg -framerate {fps} -i {image_dir}/%06d.jpg -c:v libx264 -r {fps} {path}"
-        subprocess.call(ffmpeg_cmd, shell=True)
-        # shutil.rmtree(image_dir)
+        codec = "libx264"
+        container = av.open(path, "w")
+        stream = container.add_stream(codec, rate=fps)
+
+        stream.width = width
+        stream.height = height
+
+        for pil_image in pil_images:
+            # pil_image = Image.fromarray(image_arr).convert("RGB")
+            av_frame = av.VideoFrame.from_image(pil_image)
+            container.mux(stream.encode(av_frame))
+        container.mux(stream.encode())
+        container.close()
 
     elif save_fmt == ".gif":
-        # pil_images[0].save(
-        #     fp=path,
-        #     format="GIF",
-        #     append_images=pil_images[1:],
-        #     save_all=True,
-        #     duration=(1 / fps * 1000),
-        #     loop=0,
-        # )
-        pass
+        pil_images[0].save(
+            fp=path,
+            format="GIF",
+            append_images=pil_images[1:],
+            save_all=True,
+            duration=(1 / fps * 1000),
+            loop=0,
+        )
     else:
         raise ValueError("Unsupported file type. Use .mp4 or .gif.")
 

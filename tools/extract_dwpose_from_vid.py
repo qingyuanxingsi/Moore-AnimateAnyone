@@ -17,10 +17,11 @@ from src.utils.util import get_fps, read_frames, save_videos_from_pil
 # /path/to/video_dataset/*/*.mp4 -> /path/to/video_dataset_dwpose/*/*.mp4
 
 
-def process_single_video(video_path, detector, root_dir, save_dir):
+def process_single_video(video_path, detector, root_dir, save_dir, filter_dir):
     relative_path = os.path.relpath(video_path, root_dir)
     print(relative_path, video_path, root_dir)
     out_path = os.path.join(save_dir, relative_path)
+    filter_path = os.path.join(filter_dir, relative_path)
     if os.path.exists(out_path):
         return
     output_dir = Path(os.path.dirname(os.path.join(save_dir, relative_path)))
@@ -37,7 +38,8 @@ def process_single_video(video_path, detector, root_dir, save_dir):
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     # kps_results = []
     bar = tqdm(total=frame_count)
-    frame_idx = 0
+    kps_results = []
+    raw_results = []
     while cap.isOpened():
         bar.update(1)
         ret, frame = cap.read()
@@ -45,20 +47,21 @@ def process_single_video(video_path, detector, root_dir, save_dir):
             break
         result, score = detector(frame)
         score = np.mean(score, axis=-1)
-        # print(score)
-        # kps_results.append(result)
-        result.save(os.path.join(frame_dir, f"{frame_idx:06d}.jpg"))
-        frame_idx += 1
+        if score >= 0.5:
+            kps_results.append(result)
+            raw_results.append(Image.fromarray(frame[:, :, ::-1]))
     bar.close()
     cap.release()
 
-    save_videos_from_pil(frame_dir, out_path, fps=fps)
+    if len(raw_results) > 0:
+        save_videos_from_pil(kps_results, out_path, fps=fps)
+        save_videos_from_pil(raw_results, filter_path, fps=fps)
 
 
-def process_batch_videos(video_list, detector, root_dir, save_dir):
+def process_batch_videos(video_list, detector, root_dir, save_dir, filter_dir):
     for i, video_path in enumerate(video_list):
         print(f"Process {i}/{len(video_list)} video")
-        process_single_video(video_path, detector, root_dir, save_dir)
+        process_single_video(video_path, detector, root_dir, save_dir, filter_dir)
 
 
 if __name__ == "__main__":
@@ -79,10 +82,14 @@ if __name__ == "__main__":
     args.video_root = os.path.abspath(args.video_root)
     if args.save_dir is None:
         save_dir = args.video_root + "_dwpose"
+        filter_dir = args.video_root + "_filter"
     else:
         save_dir = args.save_dir
+        filter_dir = args.filter_dir
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
+    if not os.path.exists(filter_dir):
+        os.makedirs(filter_dir)
     cuda_visible_devices = os.environ.get("CUDA_VISIBLE_DEVICES", "0")
     gpu_ids = [int(id) for id in range(len(cuda_visible_devices.split(",")))]
     print(f"avaliable gpu ids: {gpu_ids}")
@@ -94,7 +101,7 @@ if __name__ == "__main__":
             if name.endswith(".mp4"):
                 video_mp4_paths.add(os.path.join(root, name))
     video_mp4_paths = sorted(list(video_mp4_paths))
-    random.shuffle(video_mp4_paths)
+    # random.shuffle(video_mp4_paths)
 
     # split into chunks,
     batch_size = (len(video_mp4_paths) + num_workers - 1) // num_workers
@@ -115,7 +122,12 @@ if __name__ == "__main__":
 
             futures.append(
                 executor.submit(
-                    process_batch_videos, chunk, detector, args.video_root, save_dir
+                    process_batch_videos, 
+                    chunk, 
+                    detector, 
+                    args.video_root, 
+                    save_dir,
+                    filter_dir
                 )
             )
         for future in concurrent.futures.as_completed(futures):
