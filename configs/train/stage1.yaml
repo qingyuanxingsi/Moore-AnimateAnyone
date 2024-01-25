@@ -1,5 +1,5 @@
 data:
-  train_bs: 1
+  train_bs: 2
   train_width: 768 
   train_height: 480 
   meta_paths:
