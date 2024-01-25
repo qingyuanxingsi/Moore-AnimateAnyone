@@ -3,6 +3,7 @@
 import os
 import pickle
 import time
+import glob
 from tqdm import tqdm
 from scenedetect import open_video, SceneManager, split_video_ffmpeg
 from scenedetect.detectors import ContentDetector
@@ -51,6 +52,11 @@ if __name__ == '__main__':
     pre_ts = 0
     for file in tqdm(sorted(os.listdir(local_dir))):
         if not file.endswith('.mp4'):
+            continue
+        raw_name, _ = os.path.splitext(file)
+        match_files = glob.glob(os.path.join(out_dir, f"{raw_name}-Scene-*.mp4"))
+        if match_files:
+            print(f"{file} processed")
             continue
         input_path = os.path.join(local_dir, file)
         split_video_into_scenes(input_path)
