@@ -1,9 +1,9 @@
 data:
-  train_bs: 4
+  train_bs: 1
   train_width: 768 
-  train_height: 768 
+  train_height: 480 
   meta_paths:
-    - "./data/fashion_meta.json"
+    - "./datasets/talk/talk_meta.json"
   # Margin of frame indexes between ref and tgt images
   sample_margin: 30  
 
@@ -21,7 +21,7 @@ solver:
   lr_scheduler: 'constant'
 
   # optimizer
-  use_8bit_adam: False 
+  use_8bit_adam: True 
   adam_beta1: 0.9
   adam_beta2: 0.999
   adam_weight_decay:  1.0e-2
