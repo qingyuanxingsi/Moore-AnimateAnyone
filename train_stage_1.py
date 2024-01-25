@@ -2,6 +2,7 @@ import argparse
 import logging
 import math
 import os
+import copy
 import os.path as osp
 import random
 import warnings
@@ -136,8 +137,8 @@ def log_validation(
     logger.info("Running validation... ")
 
     ori_net = accelerator.unwrap_model(net)
-    reference_unet = ori_net.reference_unet
-    denoising_unet = ori_net.denoising_unet
+    reference_unet = copy.deepcopy(ori_net.reference_unet)
+    denoising_unet = copy.deepcopy(ori_net.denoising_unet)
     pose_guider = ori_net.pose_guider
 
     generator = torch.manual_seed(42)
