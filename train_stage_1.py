@@ -160,12 +160,10 @@ def log_validation(
     pipe = pipe.to(accelerator.device)
 
     ref_image_paths = [
-        "./configs/inference/ref_images/anyone-2.png",
-        "./configs/inference/ref_images/anyone-3.png",
+        "./configs/inference/ref_images/anyone-12.png",
     ]
     pose_image_paths = [
-        "./configs/inference/pose_images/pose-1.png",
-        "./configs/inference/pose_images/pose-1.png",
+        "./configs/inference/pose_images/pose-demo.png",
     ]
 
     pil_images = []
@@ -208,6 +206,7 @@ def log_validation(
 
 
 def main(cfg):
+    main_dir = os.path.dirname(os.path.abspath(__file__))
     kwargs = DistributedDataParallelKwargs(find_unused_parameters=True)
     accelerator = Accelerator(
         gradient_accumulation_steps=cfg.solver.gradient_accumulation_steps,
@@ -635,15 +634,17 @@ def main(cfg):
                             height=cfg.data.train_height,
                         )
 
-                        for sample_id, sample_dict in enumerate(sample_dicts):
+                        temp_dir = f"{main_dir}/tmp"
+                        if not os.path.exists(temp_dir):
+                            os.makedirs(temp_dir)
+                        for _, sample_dict in enumerate(sample_dicts):
                             sample_name = sample_dict["name"]
                             img = sample_dict["img"]
-                            with TemporaryDirectory() as temp_dir:
-                                out_file = Path(
-                                    f"{temp_dir}/{global_step:06d}-{sample_name}.gif"
-                                )
-                                img.save(out_file)
-                                mlflow.log_artifact(out_file)
+                            out_file = Path(
+                                f"{temp_dir}/{global_step:06d}-{sample_name}.gif"
+                            )
+                            img.save(out_file)
+                            mlflow.log_artifact(out_file)
 
             logs = {
                 "step_loss": loss.detach().item(),
