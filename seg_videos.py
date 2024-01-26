@@ -4,6 +4,7 @@ import os
 import pickle
 import time
 import glob
+import argparse
 from tqdm import tqdm
 from scenedetect import open_video, SceneManager, split_video_ffmpeg
 from scenedetect.detectors import ContentDetector
@@ -37,19 +38,17 @@ def split_video_into_scenes(video_path, threshold=27.0):
 
 
 if __name__ == '__main__':
-    pickle_path = 'seg_info.pkl'
-    if not os.path.exists(pickle_path):
-        seg_dict = {}
-    else:
-        seg_dict = pickle.load(open(pickle_path, 'rb'))
-    local_dir = 'datasets/talk/videos'
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--video_root", type=str)
+    parser.add_argument("--save_dir", type=str)
+    args = parser.parse_args()
+    local_dir = args.video_root
     local_dir = os.path.abspath(local_dir)
-    out_dir = os.path.join(os.path.dirname(local_dir), 'seg')
+    out_dir = args.save_dir
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     os.chdir(out_dir)
 
-    pre_ts = 0
     for file in tqdm(sorted(os.listdir(local_dir))):
         if not file.endswith('.mp4'):
             continue
@@ -60,7 +59,3 @@ if __name__ == '__main__':
             continue
         input_path = os.path.join(local_dir, file)
         split_video_into_scenes(input_path)
-        cur_ts = int(time.time())
-        if cur_ts - pre_ts >= 600:
-            pickle.dump(seg_dict, open(pickle_path, 'wb'))
-            pre_ts = cur_ts
