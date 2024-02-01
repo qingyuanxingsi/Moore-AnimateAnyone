@@ -13,8 +13,8 @@ parser.add_argument("--dataset", type=str)
 
 args = parser.parse_args()
 
-root_path = f"datasets/{args.dataset}/seg_filter"
-pose_dir = f"datasets/{args.dataset}/seg_dwpose"
+root_path = f"datasets/{args.dataset}/seg_filter_no_sub_filter"
+pose_dir = f"datasets/{args.dataset}/seg_filter_no_sub_dwpose"
 
 # collect all video_folder paths
 video_mp4_paths = set()
