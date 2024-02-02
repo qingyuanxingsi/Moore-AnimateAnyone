@@ -223,6 +223,7 @@ def log_validation(
 
 
 def main(cfg):
+    main_dir = os.path.dirname(os.path.abspath(__file__))
     kwargs = DistributedDataParallelKwargs(find_unused_parameters=False)
     accelerator = Accelerator(
         gradient_accumulation_steps=cfg.solver.gradient_accumulation_steps,
@@ -672,15 +673,17 @@ def main(cfg):
                             generator=generator,
                         )
 
-                        for sample_id, sample_dict in enumerate(sample_dicts):
+                        temp_dir = f"{main_dir}/tmp"
+                        if not os.path.exists(temp_dir):
+                            os.makedirs(temp_dir)
+                        for _, sample_dict in enumerate(sample_dicts):
                             sample_name = sample_dict["name"]
                             vid = sample_dict["vid"]
-                            with TemporaryDirectory() as temp_dir:
-                                out_file = Path(
-                                    f"{temp_dir}/{global_step:06d}-{sample_name}.gif"
-                                )
-                                save_videos_grid(vid, out_file, n_rows=2)
-                                mlflow.log_artifact(out_file)
+                            out_file = Path(
+                                f"{temp_dir}/{global_step:06d}-{sample_name}.gif"
+                            )
+                            save_videos_grid(vid, out_file, n_rows=2)
+                            mlflow.log_artifact(out_file)
 
             logs = {
                 "step_loss": loss.detach().item(),
