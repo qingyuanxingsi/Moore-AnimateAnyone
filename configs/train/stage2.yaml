@@ -1,9 +1,9 @@
 data:
   train_bs: 1
-  train_width: 512 
-  train_height: 512 
+  train_width: 768 
+  train_height: 480 
   meta_paths:
-    - "./data/fashion_meta.json"
+    - "datasets/talk/talk_meta.json"
   sample_rate: 4 
   n_sample_frames: 24
 
@@ -50,7 +50,7 @@ noise_offset: 0.05
 snr_gamma: 5.0
 enable_zero_snr: True 
 stage1_ckpt_dir: './exp_output/stage1'
-stage1_ckpt_step: 980
+stage1_ckpt_step: 30000
 
 seed: 12580
 resume_from_checkpoint: ''
