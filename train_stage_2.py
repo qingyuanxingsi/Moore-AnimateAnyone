@@ -680,7 +680,7 @@ def main(cfg):
                             sample_name = sample_dict["name"]
                             vid = sample_dict["vid"]
                             out_file = Path(
-                                f"{temp_dir}/{global_step:06d}-{sample_name}.gif"
+                                f"{temp_dir}/{sample_name}.gif"
                             )
                             save_videos_grid(vid, out_file, n_rows=2)
                             mlflow.log_artifact(out_file)

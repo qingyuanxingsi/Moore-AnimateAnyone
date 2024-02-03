@@ -641,7 +641,7 @@ def main(cfg):
                             sample_name = sample_dict["name"]
                             img = sample_dict["img"]
                             out_file = Path(
-                                f"{temp_dir}/{global_step:06d}-{sample_name}.gif"
+                                f"{temp_dir}/{sample_name}.gif"
                             )
                             img.save(out_file)
                             mlflow.log_artifact(out_file)
