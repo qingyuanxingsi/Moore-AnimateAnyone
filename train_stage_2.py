@@ -169,11 +169,11 @@ def log_validation(
     test_cases = [
         (
             "./configs/inference/ref_images/anyone-3.png",
-            "./configs/inference/pose_videos/anyone-video-1_kps.mp4",
+            "./configs/inference/pose_videos/anyone-video-6_kps.mp4",
         ),
         (
             "./configs/inference/ref_images/anyone-2.png",
-            "./configs/inference/pose_videos/anyone-video-2_kps.mp4",
+            "./configs/inference/pose_videos/anyone-video-7_kps.mp4",
         ),
     ]
 
